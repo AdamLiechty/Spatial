@@ -80,13 +80,15 @@ public class Orienter : MonoBehaviour {
 				var touch1 = Input.GetTouch (1);
 				Vector2 touch1Delta = touch1.phase == TouchPhase.Moved ? touch1.deltaPosition : Vector2.zero;
 
-				float currAngle = (float)Math.Atan2((touch1.position.y - touch0.position.y), (touch1.position.x - touch0.position.x));
-				float oldAngle = (float)Math.Atan2(((touch1.position.y - touch1Delta.y) - (touch0.position.y - touch0Delta.y)), ((touch1.position.x - touch1Delta.x) - (touch0.position.x - touch0Delta.x)));
-				m.Tilt = currAngle - oldAngle;
+				float old0Y = touch0.position.y - touch0Delta.y;
+				float old1Y = touch1.position.y - touch1Delta.y;
+				float old0X = touch0.position.x - touch0Delta.x;
+				float old1X = touch1.position.x - touch1Delta.x;
 
-				//Debug.Log ("currAngle: " + currAngle);
-				//Debug.Log("oldAngle: " + oldAngle);
-				//if (m.Tilt != 0) Debug.Log (m.Tilt);
+				float currAngle = (float)Math.Atan2((touch1.position.y - touch0.position.y), (touch1.position.x - touch0.position.x));
+				float oldAngle = (float)Math.Atan2(((old1Y) - (old0Y)), ((old1X) - (old0X)));
+				m.Tilt = currAngle - oldAngle;
+				if (Math.Abs(m.Tilt) > 1) m.Tilt = 0;
 			}
 			else if (touch0.phase == TouchPhase.Moved)
 			{
@@ -102,5 +104,6 @@ public class Orienter : MonoBehaviour {
 	{
 		public Vector2 Drag { get; set; }
 		public float Tilt { get; set; }
+		public float Zoom { get; set; }
 	}
 }
