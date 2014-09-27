@@ -2,24 +2,18 @@
 using System.Collections;
 using System.Collections.Generic;
 using System;
+using System.IO;
 
 public class Orienter : MonoBehaviour {
 
 	private GameObject _currentLevel;
+	private Matrix4x4 _orientation;
+	private Matrix4x4 _orientationTarget;
+
 
 	// Use this for initialization
 	void Start () {
 		HideDummies ();
-
-		testTarget = new Matrix4x4 ()
-		{
-			m00 = -0.6623406f, m01 = -0.02764151f, m02 = -0.7486928f, m03 =0f,
-			m10 = -0.0009392444f, m11 = -0.9992877f, m12 = 0.03772431f, m13 = 0f, 
-			m20 = -0.7492023f, m21 = 0.02568955f, m22 = 0.6618429f, m23 = 0f,
-			m33 = 1f
-		};
-
-		this.LoadLevel ("Test");
 
 		//for (int y = 0; y < 5; y++) {
 		//	for (int x = 0; x < 5; x++) {
@@ -29,12 +23,13 @@ public class Orienter : MonoBehaviour {
 		//}
 	}
 
-	private void LoadLevel(string level) {
+	public void LoadLevel(string level, Matrix4x4 target) {
 		if (_currentLevel != null) {
 			Destroy (_currentLevel);
 		}
 
 		this.transform.localRotation = Quaternion.identity;
+		_orientationTarget = target;
 
 		var levelObject = Resources.Load<GameObject>("Levels/" + level);
 		_currentLevel = (GameObject)Instantiate(levelObject, Vector3.zero, Quaternion.identity);
@@ -47,7 +42,6 @@ public class Orienter : MonoBehaviour {
 		}
 	}
 
-	Matrix4x4 testTarget;
 	// Update is called once per frame
 	void Update () {
 		var movement = GetTouchMovement ();
@@ -58,15 +52,14 @@ public class Orienter : MonoBehaviour {
 		float angle = (Math.Abs (h) + Math.Abs(v) + Math.Abs(t)) * 3.0f;
 		this.transform.RotateAround (Vector3.zero, new Vector3 () { x = v, y = h, z = t }, angle);
 		this.transform.RotateAround (Vector3.zero, new Vector3 () { z = 1 }, movement.Tilt * 200f);
-		var m = this.transform.localToWorldMatrix;
-
-		if (IsClose(testTarget, m)) {
-			Debug.Log("Target!");
-			this.LoadLevel ("Test");
-		}
 	}
 
-	bool IsClose(Matrix4x4 target, Matrix4x4 source)
+	public bool IsNearTarget()
+	{
+		return IsClose (_orientationTarget, this.transform.localToWorldMatrix);
+	}
+
+	static bool IsClose(Matrix4x4 target, Matrix4x4 source)
 	{
 		float errorSum = Math.Abs (target.m00 - source.m00);
 		errorSum += Math.Abs (target.m01 - source.m01);
