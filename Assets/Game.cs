@@ -32,7 +32,6 @@ public class Game : MonoBehaviour {
 			if (line.Length > 0)
 			{
 				var split = line.Split('\t');
-				Debug.Log(split.Length);
 				int level = int.Parse(split[0]);
 				var target = new Matrix4x4()
 				{

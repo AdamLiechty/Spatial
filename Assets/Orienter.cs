@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿#define DEBUG
+using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 using System;
@@ -7,9 +8,12 @@ using System.IO;
 public class Orienter : MonoBehaviour {
 
 	private GameObject _currentLevel;
+	private string _levelName;
 	private Matrix4x4 _orientation;
 	private Matrix4x4 _orientationTarget;
-
+#if DEBUG
+	private Matrix4x4 DEBUG_lastOrientation = Matrix4x4.zero;
+#endif
 
 	// Use this for initialization
 	void Start () {
@@ -34,6 +38,7 @@ public class Orienter : MonoBehaviour {
 		var levelObject = Resources.Load<GameObject>("Levels/" + level);
 		_currentLevel = (GameObject)Instantiate(levelObject, Vector3.zero, Quaternion.identity);
 		_currentLevel.transform.parent = this.transform;
+		_levelName = level;
 	}
 
 	static void HideDummies() {
@@ -52,6 +57,18 @@ public class Orienter : MonoBehaviour {
 		float angle = (Math.Abs (h) + Math.Abs(v) + Math.Abs(t)) * 3.0f;
 		this.transform.RotateAround (Vector3.zero, new Vector3 () { x = v, y = h, z = t }, angle);
 		this.transform.RotateAround (Vector3.zero, new Vector3 () { z = 1 }, movement.Tilt * 200f);
+
+#if DEBUG
+		var m = this.transform.localToWorldMatrix;
+		if (m != DEBUG_lastOrientation)
+			Debug.Log(String.Format("{0}\t{1}\t{2}\t{3}\t{4}\t{5}\t{6}\t{7}\t{8}\t{9}\t{10}\t{11}\t{12}\t{13}\t{14}\t{15}\t{16}",
+		    	                    _levelName,
+			                        m.m00, m.m01, m.m02, m.m03,
+		        	                m.m10, m.m11, m.m12, m.m13,
+		            	            m.m20, m.m21, m.m22, m.m23,
+		                	        m.m30, m.m31, m.m32, m.m33));
+		DEBUG_lastOrientation = m;
+#endif
 	}
 
 	public bool IsNearTarget()
