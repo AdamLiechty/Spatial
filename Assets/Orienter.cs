@@ -1,13 +1,16 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 using System;
 
 public class Orienter : MonoBehaviour {
 
-	public Transform block;
+	private GameObject _currentLevel;
 
 	// Use this for initialization
 	void Start () {
+		HideDummies ();
+
 		testTarget = new Matrix4x4 ()
 		{
 			m00 = -0.6623406f, m01 = -0.02764151f, m02 = -0.7486928f, m03 =0f,
@@ -16,11 +19,31 @@ public class Orienter : MonoBehaviour {
 			m33 = 1f
 		};
 
-		for (int y = 0; y < 5; y++) {
-			for (int x = 0; x < 5; x++) {
-				var b = (Transform)Instantiate(block, new Vector3(x, y, (x + y )* -0.1f), Quaternion.identity);
-				b.parent = this.transform;
-			}
+		this.LoadLevel ("Test");
+
+		//for (int y = 0; y < 5; y++) {
+		//	for (int x = 0; x < 5; x++) {
+		//		var b = (Transform)Instantiate(block, new Vector3(x, y, (x + y )* -0.1f), Quaternion.identity);
+		//		b.parent = this.transform;
+		//	}
+		//}
+	}
+
+	private void LoadLevel(string level) {
+		if (_currentLevel != null) {
+			Destroy (_currentLevel);
+		}
+
+		this.transform.localRotation = Quaternion.identity;
+
+		var levelObject = Resources.Load<GameObject>("Levels/" + level);
+		_currentLevel = (GameObject)Instantiate(levelObject, Vector3.zero, Quaternion.identity);
+		_currentLevel.transform.parent = this.transform;
+	}
+
+	static void HideDummies() {
+		foreach (var dummy in GameObject.FindGameObjectsWithTag ("Dummy")) {
+			dummy.SetActive(false);
 		}
 	}
 
@@ -37,8 +60,10 @@ public class Orienter : MonoBehaviour {
 		this.transform.RotateAround (Vector3.zero, new Vector3 () { z = 1 }, movement.Tilt * 200f);
 		var m = this.transform.localToWorldMatrix;
 
-		if (IsClose(testTarget, m))
+		if (IsClose(testTarget, m)) {
 			Debug.Log("Target!");
+			this.LoadLevel ("Test");
+		}
 	}
 
 	bool IsClose(Matrix4x4 target, Matrix4x4 source)
