@@ -18,13 +18,6 @@ public class Orienter : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
 		HideDummies ();
-
-		//for (int y = 0; y < 5; y++) {
-		//	for (int x = 0; x < 5; x++) {
-		//		var b = (Transform)Instantiate(block, new Vector3(x, y, (x + y )* -0.1f), Quaternion.identity);
-		//		b.parent = this.transform;
-		//	}
-		//}
 	}
 
 	public void LoadLevel(string level, Matrix4x4 target) {
