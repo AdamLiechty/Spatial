@@ -9,10 +9,9 @@ public class Orienter : MonoBehaviour {
 
 	private GameObject _currentLevel;
 	private string _levelName;
-	private Matrix4x4 _orientation;
-	private Matrix4x4 _orientationTarget;
+	private Quaternion _rotationTarget;
 #if DEBUG
-	private Matrix4x4 DEBUG_lastOrientation = Matrix4x4.zero;
+	private Quaternion DEBUG_lastRotation = Quaternion.identity;
 #endif
 
 	// Use this for initialization
@@ -20,17 +19,19 @@ public class Orienter : MonoBehaviour {
 		HideDummies ();
 	}
 
-	public void LoadLevel(string level, Matrix4x4 target) {
+	public void LoadLevel(string level, Quaternion targetRotation) {
 		if (_currentLevel != null) {
 			Destroy (_currentLevel);
 		}
 
 		this.transform.localRotation = Quaternion.identity;
-		_orientationTarget = target;
+		_rotationTarget = targetRotation;
 
 		var levelObject = Resources.Load<GameObject>("Levels/" + level);
 		_currentLevel = (GameObject)Instantiate(levelObject, Vector3.zero, Quaternion.identity);
 		_currentLevel.transform.parent = this.transform;
+		_currentLevel.transform.localPosition = Vector3.zero;
+		_currentLevel.transform.localRotation = Quaternion.identity;
 		_levelName = level;
 	}
 
@@ -48,25 +49,37 @@ public class Orienter : MonoBehaviour {
 		float v = 0.7f * movement.Drag.y + Input.GetAxis ("Vertical");
 		float t = Input.GetAxis ("Tilt");
 		float angle = (Math.Abs (h) + Math.Abs(v) + Math.Abs(t)) * 3.0f;
-		this.transform.RotateAround (Vector3.zero, new Vector3 () { x = v, y = h, z = t }, angle);
-		this.transform.RotateAround (Vector3.zero, new Vector3 () { z = 1 }, movement.Tilt * 200f);
-
-#if DEBUG
-		var m = this.transform.localToWorldMatrix;
-		if (m != DEBUG_lastOrientation)
-			Debug.Log(String.Format("{0}\t{1}\t{2}\t{3}\t{4}\t{5}\t{6}\t{7}\t{8}\t{9}\t{10}\t{11}\t{12}\t{13}\t{14}\t{15}\t{16}",
-		    	                    _levelName,
-			                        m.m00, m.m01, m.m02, m.m03,
-		        	                m.m10, m.m11, m.m12, m.m13,
-		            	            m.m20, m.m21, m.m22, m.m23,
-		                	        m.m30, m.m31, m.m32, m.m33));
-		DEBUG_lastOrientation = m;
-#endif
+		this.transform.RotateAround (this.transform.position, new Vector3 () { x = v, y = h, z = t }, angle);
+		this.transform.RotateAround (this.transform.position, new Vector3 () { z = 1 }, movement.Tilt * 200f);
 	}
 
 	public bool IsNearTarget()
 	{
-		return IsClose (_orientationTarget, this.transform.localToWorldMatrix);
+		#if DEBUG
+		var r = this.transform.localRotation;
+		if (r != DEBUG_lastRotation)
+			Debug.Log(_levelName + "\t" + AsString(r));
+			DEBUG_lastRotation = r;
+		#endif
+
+		return IsClose (_rotationTarget, this.transform.localRotation);
+		//return IsClose (_orientationTarget, this.transform.localToWorldMatrix);
+	}
+
+	private static string AsString(Quaternion q)
+	{
+		return String.Format ("{0}\t{1}\t{2}\t{3}",	q.x, q.y, q.z, q.w);
+	}
+
+	static bool IsClose(Quaternion target, Quaternion source)
+	{
+		float errorSum = Math.Abs (target.w - source.w);
+		errorSum += Math.Abs (target.x - source.x);
+		errorSum += Math.Abs (target.y - source.y);
+		errorSum += Math.Abs (target.z - source.z);
+
+		Debug.Log (errorSum);
+		return (errorSum < 0.08f);
 	}
 
 	static bool IsClose(Matrix4x4 target, Matrix4x4 source)
