@@ -7,18 +7,21 @@ public class Game : MonoBehaviour {
 	public Orienter Orienter;
 
 	private IDictionary<int, Level> levels;
+	private int currentLevel;
 
 	// Use this for initialization
 	void Start () {
 		this.levels = LoadLevels ();
 
-		this.Orienter.LoadLevel ("1", this.levels [1].TargetRotation);
+		currentLevel = 1;
+		this.Orienter.LoadLevel (currentLevel.ToString(), this.levels[currentLevel].TargetRotation);
 	}
 	
 	// Update is called once per frame
 	void Update () {
 		if (this.Orienter.IsNearTarget()) {
-			this.Orienter.LoadLevel("1", this.levels[1].TargetRotation);
+			currentLevel++;
+			this.Orienter.LoadLevel (currentLevel.ToString(), this.levels[currentLevel].TargetRotation);
 		}
 	}
 
